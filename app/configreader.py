@@ -7,6 +7,7 @@ class Config(BaseSettings):
     bot_token: str
     bot_fsm_storage: str
     admins: list[int]
+    openai_api_key: str
     postgres_dsn: PostgresDsn | None
     sqlite_dsn: str | None
     redis_dsn: RedisDsn | None
