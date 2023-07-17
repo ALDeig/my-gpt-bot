@@ -1,3 +1,4 @@
+from aiogram import html
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.src.services.db import db_requests
@@ -21,7 +22,7 @@ async def response_from_gpt(
         session: AsyncSession,
         user_id: int,
         messages: list[dict[str, str]]) -> str:
-    response = await get_response_from_gpt(messages)
+    response = html.quote(await get_response_from_gpt(messages))
     await db_requests.add_dialog(session, user_id, "assistant", response)
     return response
 
