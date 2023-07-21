@@ -10,7 +10,7 @@ async def get_response_from_gpt(messages: list[dict[str, str]]) -> str:
     completion = await openai.ChatCompletion.acreate(
         model="gpt-4",
         messages=messages,
-        temperature=0.7
+        temperature=0.5
     )
     response_content = completion.choices[0].message.content
     return response_content
