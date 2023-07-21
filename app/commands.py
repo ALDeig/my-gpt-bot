@@ -15,7 +15,7 @@ async def set_commands(bot: Bot, config: Config):
     )
     admin_commands = [
         BotCommand(command="start", description="В начало"),
-        BotCommand(command="clear", description="Очистить контектс")
+        BotCommand(command="clear", description="Очистить контекст")
     ]
     for admin_id in config.admins:
         try:

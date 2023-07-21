@@ -19,12 +19,13 @@ router = Router()
 async def cmd_start(msg: Message, db: AsyncSession, state: FSMContext):
     await state.clear()
     await save_user(db, msg.chat.id)
-    await msg.answer("Привет админ")
+    await msg.answer("Пришли свой запрос...")
 
 
 @router.message(Command(commands="clear"), flags={"db": True})
 async def cmd_clear_dialog(msg: Message, db: AsyncSession):
     await clear_dialog_context(db, msg.chat.id)
+    await msg.answer("Контекст очищен")
 
 
 @router.message(flags={"db": True})
