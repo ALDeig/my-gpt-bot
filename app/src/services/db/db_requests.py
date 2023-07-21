@@ -6,10 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.src.services.db.tables import Dialog, User
 
 
-async def add_user(session: AsyncSession, user_id: int):
+async def add_user(session: AsyncSession, user_id: int, name: str, username: str | None):
     stmt = (
         insert(User)
-        .values(id=user_id)
+        .values(id=user_id, name=name, username=username)
         .on_conflict_do_nothing(
             index_elements=[User.id]
         )

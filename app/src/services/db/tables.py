@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, ForeignKey, Integer
+from sqlalchemy import BigInteger, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.src.services.db.base import Base
@@ -8,6 +8,8 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(BigInteger(), primary_key=True)
+    name: Mapped[str]
+    username: Mapped[str] = mapped_column(String, nullable=True)
 
 
 class Dialog(Base):

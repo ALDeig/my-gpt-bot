@@ -17,8 +17,9 @@ router = Router()
 
 @router.message(Command(commands="start"), flags={"db": True})
 async def cmd_start(msg: Message, db: AsyncSession, state: FSMContext):
+    if msg.from_user is None: return
     await state.clear()
-    await save_user(db, msg.chat.id)
+    await save_user(db, msg.chat.id, msg.from_user.full_name, msg.from_user.username)
     await msg.answer("Пришли свой запрос...")
 
 
