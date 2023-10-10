@@ -57,4 +57,3 @@ class Dialog(Base):
 #     country: Mapped[str] = mapped_column(String(255))
 #
 #     tools: Mapped[list["ShippingCart"]] = relationship(lazy="raise")
-

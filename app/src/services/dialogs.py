@@ -6,9 +6,8 @@ from app.src.services.openai import get_response_from_gpt
 
 
 async def get_messages_to_request(
-        session: AsyncSession,
-        user_id: int,
-        text: str) -> list[dict[str, str]]:
+    session: AsyncSession, user_id: int, text: str
+) -> list[dict[str, str]]:
     dialogs = await db_requests.get_dialogs(session, user_id)
     messages = []
     for dialog in dialogs:
@@ -19,9 +18,8 @@ async def get_messages_to_request(
 
 
 async def response_from_gpt(
-        session: AsyncSession,
-        user_id: int,
-        messages: list[dict[str, str]]) -> str:
+    session: AsyncSession, user_id: int, messages: list[dict[str, str]]
+) -> str:
     response = html.quote(await get_response_from_gpt(messages))
     await db_requests.add_dialog(session, user_id, "assistant", response)
     return response

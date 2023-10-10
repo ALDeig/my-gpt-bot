@@ -3,6 +3,7 @@ import logging
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.fsm.storage.memory import MemoryStorage
+
 # from aiogram.fsm.storage.redis import RedisStorage
 
 from app.configreader import config, logging_setup
@@ -35,7 +36,7 @@ async def main():
     else:
         storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
-    
+
     if config.sqlite_dsn is None:
         raise ValueError("sqlite_dsn not avalible")
     session_factory = create_session_factory(config.sqlite_dsn)
