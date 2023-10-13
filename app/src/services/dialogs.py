@@ -17,6 +17,10 @@ async def get_messages_to_request(
     return messages
 
 
+async def add_role_for_dialog(session: AsyncSession, user_id: int, text: str):
+    await db_requests.add_dialog(session, user_id, "system", text)
+
+
 async def response_from_gpt(
     session: AsyncSession, user_id: int, messages: list[dict[str, str]]
 ) -> str:

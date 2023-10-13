@@ -1,10 +1,11 @@
 from aiogram import Router
-from aiogram.filters import Command
+from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.src.services.dialogs import (
+    add_role_for_dialog,
     clear_dialog_context,
     get_messages_to_request,
     response_from_gpt,
@@ -22,6 +23,21 @@ async def cmd_start(msg: Message, db: AsyncSession, state: FSMContext):
     await state.clear()
     await save_user(db, msg.chat.id, msg.from_user.full_name, msg.from_user.username)
     await msg.answer("Пришли свой запрос...")
+
+
+@router.message(Command(commands="add_role"))
+async def cmd_add_role(msg: Message, state: FSMContext):
+    await msg.answer("Напишите роль в которой должен общаться ChatGPT")
+    await state.set_state("get_role")
+
+
+@router.message(StateFilter("get_role"), flags={"db": True})
+async def get_role(msg: Message, db: AsyncSession, state: FSMContext):
+    if msg.text is None:
+        return
+    await add_role_for_dialog(db, msg.chat.id, msg.text)
+    await msg.answer("Роль сохранена")
+    await state.clear()
 
 
 @router.message(Command(commands="clear"), flags={"db": True})
