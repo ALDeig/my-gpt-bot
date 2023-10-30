@@ -4,9 +4,8 @@ import logging
 from aiogram import Bot, Dispatcher, F
 from aiogram.fsm.storage.memory import MemoryStorage
 
-# from aiogram.fsm.storage.redis import RedisStorage
 
-from app.configreader import config, logging_setup
+from app.settings import settings, logging_setup
 from app.commands import set_commands
 from app.src.dialogs.handlers import admin, user
 from app.src.middleware.db import DbSessionMiddleware
@@ -18,31 +17,33 @@ logger = logging.getLogger(__name__)
 
 
 def include_routers(dp: Dispatcher):
+    """Регистрация хендлеров"""
     dp.include_router(admin.router)
     dp.include_router(user.router)
 
 
 def include_filters(admins: list[int], dp: Dispatcher):
+    """Регистрация фильтров для хендлеров"""
     dp.message.filter(F.chat.type == "private")
     admin.router.message.filter(F.chat.id.in_(admins))
     admin.router.callback_query.filter(F.chat.id.in_(admins))
 
 
 async def main():
-    bot = Bot(token=config.bot_token, parse_mode="HTML")
-    if config.bot_fsm_storage == "redis":
+    bot = Bot(token=settings.bot_token, parse_mode="HTML")
+    if settings.bot_fsm_storage == "redis":
         raise ValueError("redis is not install")
         # storage = RedisStorage(config.redis_dsn)
     else:
         storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
 
-    if config.sqlite_dsn is None:
+    if settings.sqlite_dsn is None:
         raise ValueError("sqlite_dsn not avalible")
-    session_factory = create_session_factory(config.sqlite_dsn)
+    session_factory = create_session_factory(settings.sqlite_dsn)
 
     # Регистрация фильтров
-    include_filters(config.admins, dp)
+    include_filters(settings.admins, dp)
 
     # Регистрация middlewares
     dp.message.middleware(DbSessionMiddleware(session_factory))
@@ -52,7 +53,7 @@ async def main():
     include_routers(dp)
 
     # Установка команд для бота
-    await set_commands(bot, config)
+    await set_commands(bot, settings.admins)
 
     try:
         await dp.start_polling(bot)

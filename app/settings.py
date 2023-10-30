@@ -4,7 +4,7 @@ from pydantic import FieldValidationInfo, PostgresDsn, RedisDsn, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Config(BaseSettings):
+class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     bot_token: str
@@ -18,6 +18,7 @@ class Config(BaseSettings):
     @field_validator("bot_fsm_storage")
     @classmethod
     def validate_fsm_storage(cls, v):
+        """Проверяет правильно ли установлено место хранения состояния"""
         if v not in ("memory", "redis"):
             raise ValueError(
                 "Incorrect 'bot_fsm_storage' value. Value mast be 'memory' or 'redis'"
@@ -27,6 +28,8 @@ class Config(BaseSettings):
     @field_validator("redis_dsn", mode="before")
     @classmethod
     def validate_redis_dsn(cls, v: RedisDsn | None, info: FieldValidationInfo):
+        """Проверяет данные для соединения с Redis, если местом хранения состояни
+        выбран Redis"""
         if info.data["bot_fsm_storage"] == "redis" and not v:
             raise ValueError("Redis DSN string is missing!")
         return v
@@ -34,15 +37,18 @@ class Config(BaseSettings):
     @field_validator("sqlite_dsn", mode="before")
     @classmethod
     def validate_sqlite_dsn(cls, v: str | None, info: FieldValidationInfo):
+        """Если прописаны данные для соединенния с Postgres, то данные для SQLite, не
+        прописываются"""
         if info.data["postgres_dsn"] is not None:
             return
         return v
 
 
-config = Config()  # type: ignore
+settings = Settings()  # type: ignore
 
 
 def logging_setup(skip_loggers_list: list[str] | None = None):
+    """Настройка логгера"""
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s %(name)s - %(module)s:%(funcName)s:%(lineno)s - %(message)s",
