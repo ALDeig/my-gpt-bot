@@ -1,5 +1,8 @@
+import asyncio
+
 from aiogram import html
-from aiogram.types import BufferedInputFile, InputFile
+from aiogram.types import BufferedInputFile, InputFile, Message
+from aiogram.exceptions import TelegramBadRequest, TelegramRetryAfter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.src.services.db import db_requests
@@ -44,3 +47,22 @@ async def response_audio(text: str) -> InputFile:
 async def clear_dialog_context(session: AsyncSession, user_id: int):
     """Очистка истории диалога и роли"""
     await db_requests.remove_dialogs_by_user_id(session, user_id)
+
+
+async def show_generation_status(wait_message: Message):
+    animation_frames = [
+        '⠀\n⏳ Запрос принят в обработку...\n⠀',
+        '⠀\n❇️ Готовится ответ...\n⠀',
+        # '⠀\n🗣 Синтезируется голос...\n⠀',
+    ]
+    frame_index = 0
+    while True:
+        await asyncio.sleep(1)
+        try:
+            await wait_message.edit_text(animation_frames[frame_index])
+            frame_index = (frame_index + 1) % len(animation_frames)
+        except TelegramRetryAfter:
+            await asyncio.sleep(1)
+        except TelegramBadRequest:
+            frame_index = (frame_index + 1) % len(animation_frames)
+            await wait_message.answer(animation_frames[frame_index])
