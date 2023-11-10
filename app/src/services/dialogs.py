@@ -1,8 +1,9 @@
 from aiogram import html
+from aiogram.types import BufferedInputFile, InputFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.src.services.db import db_requests
-from app.src.services.openai import get_response_from_gpt
+from app.src.services.openai import get_response_from_gpt, text_to_speech
 
 
 async def get_messages_to_request(
@@ -27,9 +28,17 @@ async def response_from_gpt(
     session: AsyncSession, user_id: int, messages: list[dict[str, str]]
 ) -> str:
     """Получение ответа от openai, сохранение его в БД"""
-    response = html.quote(await get_response_from_gpt(messages))
+    response = await get_response_from_gpt(messages)
+    if response is None:
+        return "Не удалось получить ответ"
+    response = html.quote(response)
     await db_requests.add_dialog(session, user_id, "assistant", response)
     return response
+
+
+async def response_audio(text: str) -> InputFile:
+    response = await text_to_speech(text)
+    return BufferedInputFile(response, "audio")
 
 
 async def clear_dialog_context(session: AsyncSession, user_id: int):

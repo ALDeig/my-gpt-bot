@@ -8,8 +8,10 @@ from app.src.services.dialogs import (
     add_role_for_dialog,
     clear_dialog_context,
     get_messages_to_request,
+    response_audio,
     response_from_gpt,
 )
+from app.src.services.openai import text_to_speech
 from app.src.services.user import save_user
 
 
@@ -60,3 +62,4 @@ async def get_request(msg: Message, db: AsyncSession):
     messages_to_request = await get_messages_to_request(db, msg.chat.id, msg.text)
     response = await response_from_gpt(db, msg.chat.id, messages_to_request)
     await msg.answer(response)
+    await msg.answer_voice(await response_audio(response))
