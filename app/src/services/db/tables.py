@@ -19,3 +19,13 @@ class Dialog(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
     role: Mapped[str]
     content: Mapped[str]
+
+
+class Settings(Base):
+    __tablename__ = "settings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
+    tts_voice: Mapped[str] = mapped_column(String, default="nova")
+    image_style: Mapped[str] = mapped_column(String, default="vivid")
+    image_size: Mapped[str] = mapped_column(String, default="1024x1024")
