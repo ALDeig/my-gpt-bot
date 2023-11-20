@@ -7,7 +7,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from app.settings import settings, logging_setup
 from app.commands import set_commands
-from app.src.dialogs.handlers import admin, user
+from app.src.dialogs.handlers import admin, user, user_settings
 from app.src.middleware.db import DbSessionMiddleware
 from app.src.services.db.db_connect import create_session_factory
 
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 def include_routers(dp: Dispatcher):
     """Регистрация хендлеров"""
+    dp.include_router(user_settings.router)
     dp.include_router(admin.router)
     dp.include_router(user.router)
 
