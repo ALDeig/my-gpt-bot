@@ -12,7 +12,9 @@ async def get_settings_answer(
     session: AsyncSession, user_id: int
 ) -> tuple[str, InlineKeyboardMarkup]:
     settings = await db_requests.get_settings(session, user_id)
-    tts_voice_text = "" if settings.tts_voice == TTSVoice.NOT_SELECT else settings.tts_voice
+    tts_voice_text = (
+        "Не выбран" if settings.tts_voice == TTSVoice.NOT_SELECT else settings.tts_voice
+    )
     text = (
         f"🆔 Ваш id: {user_id}\n"
         f"🔊 Голос: {tts_voice_text}\n"
@@ -28,7 +30,6 @@ async def get_answer_setting_type(
     setting_type: Literal["tts_voice", "image_style", "image_format"],
 ) -> tuple[str, InlineKeyboardMarkup]:
     settings = await db_requests.get_settings(session, user_id)
-    print(setting_type)
     match setting_type:
         case "tts_voice":
             kb = kb_select_setting(TTSVoice, settings.tts_voice)

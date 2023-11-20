@@ -11,6 +11,7 @@ async def set_commands(bot: Bot, admins: list[int]):
     await bot.set_my_commands(commands=user_commands, scope=BotCommandScopeDefault())
     admin_commands = [
         BotCommand(command="start", description="В начало"),
+        BotCommand(command="image", description="Сгенерировать изображение"),
         BotCommand(command="settings", description="Настройки"),
         BotCommand(command="add_role", description="Добавить роль"),
         BotCommand(command="clear", description="Очистить контекст"),
