@@ -51,7 +51,9 @@ async def cmd_image(msg: Message, state: FSMContext):
 async def get_image_promts(msg: Message, db: AsyncSession, state: FSMContext):
     await state.clear()
     if msg.text is None: return
+    status_message = await msg.answer("⠀\n✅ Запрос отправлен\n⠀")
     response = await generate_image(db, msg.chat.id, msg.text)
+    await status_message.delete()
     if response is None:
         await msg.answer("Не удалось сгенерировать изображение")
         return

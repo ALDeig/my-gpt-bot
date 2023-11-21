@@ -13,13 +13,15 @@ async def get_settings_answer(
 ) -> tuple[str, InlineKeyboardMarkup]:
     settings = await db_requests.get_settings(session, user_id)
     tts_voice_text = (
-        "Не выбран" if settings.tts_voice == TTSVoice.NOT_SELECT else settings.tts_voice
+        "Не выбран"
+        if settings.tts_voice == TTSVoice.NOT_SELECT
+        else settings.tts_voice.value
     )
     text = (
         f"🆔 Ваш id: {user_id}\n"
         f"🔊 Голос: {tts_voice_text}\n"
-        f"🎨 Стиль: {settings.image_style}\n"
-        f"📐 Формат: {settings.image_format}"
+        f"🎨 Стиль: {settings.image_style.value}\n"
+        f"📐 Формат: {settings.image_format.value}"
     )
     return text, kb_settings_menu
 
