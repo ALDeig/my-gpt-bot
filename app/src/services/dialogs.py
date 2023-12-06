@@ -3,7 +3,7 @@ from aiogram.types import BufferedInputFile, InputFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.src.services.db import db_requests
-from app.src.services.db.tables import TTSVoice
+from app.src.services.db.models import TTSVoice
 from app.src.services.openai import (
     get_image_from_gpt,
     get_response_from_gpt,

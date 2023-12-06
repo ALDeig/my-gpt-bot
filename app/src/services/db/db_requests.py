@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.settings import settings
 from app.src.services.db.db_connect import create_session_factory
-from app.src.services.db.tables import Dialog, User, Settings
+from app.src.services.db.models import Dialog, User, Settings
 
 
 T = TypeVar("T", Dialog, User, Settings)

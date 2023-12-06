@@ -3,7 +3,7 @@ import sqlalchemy as sa
 from app.settings import settings
 from app.src.services.db.db_connect import create_session_factory
 from app.src.services.db.db_requests import BaseDAO
-from app.src.services.db.tables import Settings
+from app.src.services.db.models import Settings
 
 
 session_factory = create_session_factory(str(settings.sqlite_dsn))

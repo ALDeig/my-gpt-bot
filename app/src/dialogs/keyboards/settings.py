@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from app.src.services.db.tables import ImageForamt, ImageStyle, TTSVoice
+from app.src.services.db.models import ImageForamt, ImageStyle, TTSVoice
 
 
 kb_settings_menu = InlineKeyboardMarkup(

@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.src.dialogs.keyboards.settings import kb_select_setting, kb_settings_menu
 from app.src.services.db import db_requests
-from app.src.services.db.tables import ImageForamt, ImageStyle, TTSVoice
+from app.src.services.db.models import ImageForamt, ImageStyle, TTSVoice
 
 
 async def get_settings_answer(
