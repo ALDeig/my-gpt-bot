@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.src.services.db import db_requests
 from app.src.services.db.tables import TTSVoice
+from app.src.services.markdown import escape_special_characters_in_place_text
 from app.src.services.openai import (
     get_image_from_gpt,
     get_response_from_gpt,
@@ -35,9 +36,8 @@ async def response_from_gpt(session: AsyncSession, user_id: int, message: str) -
     response = await get_response_from_gpt(messages_to_request)
     if response is None:
         return "Не удалось получить ответ"
-    response = html.quote(response)
-    await db_requests.add_dialog(session, user_id, "assistant", response)
-    return response
+    await db_requests.add_dialog(session, user_id, "assistant", html.quote(response))
+    return escape_special_characters_in_place_text(response)
 
 
 async def response_audio(

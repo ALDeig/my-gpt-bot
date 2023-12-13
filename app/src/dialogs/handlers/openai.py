@@ -70,7 +70,7 @@ async def get_request(msg: Message, db: AsyncSession):
     status_message = await msg.answer("⠀\n✅ Запрос отправлен\n⠀")
     response = await response_from_gpt(db, msg.chat.id, msg.text)
     await status_message.delete()
-    await msg.answer(response.replace(".", "\."), parse_mode="MarkdownV2")
+    await msg.answer(response, parse_mode="MarkdownV2")
     audio = await response_audio(db, msg.chat.id, response)
     if audio is not None:
         await msg.answer_voice(audio)
