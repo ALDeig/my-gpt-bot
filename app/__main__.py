@@ -2,6 +2,8 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher, F
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
 
@@ -34,7 +36,10 @@ def include_filters(admins: list[int], dp: Dispatcher):
 
 
 async def main():
-    bot = Bot(token=settings.bot_token, parse_mode="HTML")
+    bot = Bot(
+        token=settings.bot_token,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+    )
     if settings.bot_fsm_storage == "redis":
         raise ValueError("redis is not install")
         # storage = RedisStorage(config.redis_dsn)
