@@ -7,7 +7,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from app.settings import settings, logging_setup
 from app.commands import set_commands
-from app.src.dialogs.handlers import admin, user
+from app.src.dialogs.handlers import admin, user, user_settings, openai
 from app.src.middleware.db import DbSessionMiddleware
 from app.src.services.db.db_connect import create_session_factory
 
@@ -18,7 +18,9 @@ logger = logging.getLogger(__name__)
 
 def include_routers(dp: Dispatcher):
     """Регистрация хендлеров"""
+    dp.include_router(user_settings.router)
     dp.include_router(admin.router)
+    dp.include_router(openai.router)
     dp.include_router(user.router)
 
 
@@ -27,6 +29,8 @@ def include_filters(admins: list[int], dp: Dispatcher):
     dp.message.filter(F.chat.type == "private")
     admin.router.message.filter(F.chat.id.in_(admins))
     admin.router.callback_query.filter(F.chat.id.in_(admins))
+    openai.router.message.filter(F.chat.id.in_(admins))
+    openai.router.callback_query.filter(F.chat.id.in_(admins))
 
 
 async def main():
