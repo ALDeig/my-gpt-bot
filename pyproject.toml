@@ -9,10 +9,10 @@ packages = [{include = "my-gtp-bot"}]
 [tool.poetry.dependencies]
 python = "^3.10"
 python-dotenv = "^1.0.1"
-SQLAlchemy = "^2.0.28"
+SQLAlchemy = "^2.0.30"
 alembic = "^1.13.1"
-aiogram = "^3.4.1"
-openai = "^1.14.1"
+aiogram = "^3.6.0"
+openai = "^1.30.1"
 aiosqlite = "^0.20.0"
 pydantic-settings = "^2.2.1"
 
