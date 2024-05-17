@@ -10,7 +10,7 @@ client = AsyncOpenAI(api_key=settings.openai_api_key)
 async def get_response_from_gpt(messages: list[dict[str, str]]) -> str | None:
     """Делает запрос в openai и возвращает ответ. Модель используется GPT-4"""
     completion = await client.chat.completions.create(
-        model="gpt-4-1106-preview", messages=messages, temperature=0.5  # type: ignore
+        model="gpt-4o", messages=messages, temperature=0.5  # type: ignore
     )
     response_content = completion.choices[0].message.content
     return response_content
