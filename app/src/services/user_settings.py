@@ -3,7 +3,10 @@ from app.src.services.db.models import Settings
 
 
 async def get_open_ai_settings(dao: HolderDao, user_id: int) -> Settings:
-    return await dao.settings.find_one(id=user_id)
+    settings = await dao.settings.find_one_or_none(id=user_id)
+    if settings is None:
+        settings = await dao.settings.add(Settings(id=user_id))
+    return settings
 
 
 async def answer_update_setting(

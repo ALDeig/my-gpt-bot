@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import BigInteger, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import BigInteger, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.src.services.db.base import Base
@@ -65,7 +65,7 @@ class Settings(Base):
     #     Integer, init=False, primary_key=True, autoincrement=True
     # )
     id: Mapped[int] = mapped_column(
-        ForeignKey(User.id, ondelete="CASCADE"), primary_key=True, init=False
+        ForeignKey(User.id, ondelete="CASCADE"), primary_key=True
     )
     tts_voice: Mapped[TTSVoice] = mapped_column(Text, default=TTSVoice.NOT_SELECT)
     image_style: Mapped[ImageStyle] = mapped_column(Text, default=ImageStyle.VIVID)

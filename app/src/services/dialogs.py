@@ -9,6 +9,7 @@ from app.src.services.openai import (
     get_response_from_gpt,
     text_to_speech,
 )
+from app.src.services.user_settings import get_open_ai_settings
 
 
 async def _get_messages_to_request(
@@ -39,13 +40,11 @@ async def response_from_gpt(dao: HolderDao, user_id: int, message: str) -> str:
     return escape_special_characters_in_place_text(response)
 
 
-async def response_audio(
-    dao: HolderDao, user_id: int, text: str
-) -> InputFile | None:
+async def response_audio(dao: HolderDao, user_id: int, text: str) -> InputFile | None:
     """Получает аудио данные от openai и подготовливает
     их для отправки пользователя через ТГ.
     """
-    settings = await dao.settings.find_one(id=user_id)
+    settings = await get_open_ai_settings(dao, user_id)
     if settings.tts_voice == TTSVoice.NOT_SELECT:
         return
     response = await text_to_speech(text, settings.tts_voice.value)
@@ -53,7 +52,7 @@ async def response_audio(
 
 
 async def generate_image(dao: HolderDao, user_id: int, text: str) -> str | None:
-    settings = await dao.settings.find_one(id=user_id)
+    settings = await get_open_ai_settings(dao, user_id)
     return await get_image_from_gpt(
         text, settings.image_format.value, settings.image_style.value
     )
