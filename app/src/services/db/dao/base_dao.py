@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.src.services.db.base import Base
+from app.src.services.db.dao.exceptions import AddModelError
 
 logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=Base)
@@ -89,7 +90,7 @@ class BaseDao(Generic[T]):
         response = await self._session.execute(query)
         return response.scalar_one()
 
-    async def add(self, model_instance: T) -> T | None:
+    async def add(self, model_instance: T) -> T:
         """Добавляет новую запись в базу данных.
 
         Args:
@@ -104,10 +105,10 @@ class BaseDao(Generic[T]):
         self._session.add(model_instance)
         try:
             await self._session.commit()
-        except IntegrityError:
+        except IntegrityError as er:
             logger.exception("IntegrityError. Data: %s", model_instance)
             await self._session.rollback()
-            return None
+            raise AddModelError from er
         return model_instance
 
     async def insert_or_update(
