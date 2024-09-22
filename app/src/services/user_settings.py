@@ -9,5 +9,5 @@ async def get_open_ai_settings(dao: HolderDao, user_id: int) -> Settings:
 async def answer_update_setting(
     dao: HolderDao, user_id: int, setting_type: str, value: str
 ) -> Settings:
-    await dao.settings.update({setting_type: value}, user_id=user_id)
+    await dao.settings.update({setting_type: value}, id=user_id)
     return await get_open_ai_settings(dao, user_id)

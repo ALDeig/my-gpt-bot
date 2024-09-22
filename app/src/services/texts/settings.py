@@ -10,7 +10,7 @@ def settings_text(settings: Settings) -> str:
         else settings.tts_voice.value
     )
     return (
-        f"🆔 Ваш id: {settings.user_id}\n"
+        f"🆔 Ваш id: {settings.id}\n"
         f"🔊 Голос: {tts_voice_text}\n"
         f"🎨 Стиль: {settings.image_style.value}\n"
         f"📐 Формат: {settings.image_format.value}"

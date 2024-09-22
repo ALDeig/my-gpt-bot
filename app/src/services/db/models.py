@@ -61,19 +61,15 @@ class Settings(Base):
 
     __tablename__ = "settings"
 
+    # id: Mapped[int] = mapped_column(
+    #     Integer, init=False, primary_key=True, autoincrement=True
+    # )
     id: Mapped[int] = mapped_column(
-        Integer, init=False, primary_key=True, autoincrement=True
+        ForeignKey(User.id, ondelete="CASCADE"), primary_key=True, init=False
     )
-    user_id: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
-    tts_voice: Mapped[TTSVoice] = mapped_column(
-        Enum(TTSVoice), default=TTSVoice.NOT_SELECT
-    )
-    image_style: Mapped[ImageStyle] = mapped_column(
-        Enum(ImageStyle), default=ImageStyle.VIVID
-    )
-    image_format: Mapped[ImageForamt] = mapped_column(
-        Enum(ImageForamt), default=ImageForamt.SQUARE
-    )
+    tts_voice: Mapped[TTSVoice] = mapped_column(Text, default=TTSVoice.NOT_SELECT)
+    image_style: Mapped[ImageStyle] = mapped_column(Text, default=ImageStyle.VIVID)
+    image_format: Mapped[ImageForamt] = mapped_column(Text, default=ImageForamt.SQUARE)
 
 
 class AIModels(Base):

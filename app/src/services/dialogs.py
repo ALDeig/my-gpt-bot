@@ -45,7 +45,7 @@ async def response_audio(
     """Получает аудио данные от openai и подготовливает
     их для отправки пользователя через ТГ.
     """
-    settings = await dao.settings.find_one(user_id=user_id)
+    settings = await dao.settings.find_one(id=user_id)
     if settings.tts_voice == TTSVoice.NOT_SELECT:
         return
     response = await text_to_speech(text, settings.tts_voice.value)
@@ -53,7 +53,7 @@ async def response_audio(
 
 
 async def generate_image(dao: HolderDao, user_id: int, text: str) -> str | None:
-    settings = await dao.settings.find_one(user_id=user_id)
+    settings = await dao.settings.find_one(id=user_id)
     return await get_image_from_gpt(
         text, settings.image_format.value, settings.image_style.value
     )
