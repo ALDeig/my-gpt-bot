@@ -1,7 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from app.src.services.db.tables import ImageForamt, ImageStyle, TTSVoice
-
+from app.src.services.db.models import ImageForamt, ImageStyle, TTSVoice
 
 kb_settings_menu = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -24,4 +23,3 @@ def kb_select_setting(
         ]
         inline_keyboard.append(button)
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
-

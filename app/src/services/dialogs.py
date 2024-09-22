@@ -1,9 +1,8 @@
 from aiogram import html
 from aiogram.types import BufferedInputFile, InputFile
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.src.services.db import db_requests
-from app.src.services.db.tables import TTSVoice
+from app.src.services.db.dao.holder import HolderDao
+from app.src.services.db.models import Dialog, TTSVoice
 from app.src.services.markdown import escape_special_characters_in_place_text
 from app.src.services.openai import (
     get_image_from_gpt,
@@ -12,57 +11,57 @@ from app.src.services.openai import (
 )
 
 
-async def get_messages_to_request(
-    session: AsyncSession, user_id: int, text: str
+async def _get_messages_to_request(
+    dao: HolderDao, user_id: int, text: str
 ) -> list[dict[str, str]]:
-    """Получение сообщений для в openai из базы и соединение их с текущим запросом"""
-    dialogs = await db_requests.get_dialogs(session, user_id)
-    messages = []
-    for dialog in dialogs:
-        messages.append({"role": dialog.role, "content": dialog.content})
+    """Получение сообщений для в openai из базы и соединение их с текущим запросом."""
+    dialogs = await dao.dialog.find_all(user_id=user_id)
+    messages = [{"role": dialog.role, "content": dialog.content} for dialog in dialogs]
     messages.append({"role": "user", "content": text})
-    await db_requests.add_dialog(session, user_id, "user", text)
+    await dao.dialog.add(Dialog(user_id=user_id, role="user", content=text))
     return messages
 
 
-async def add_role_for_dialog(session: AsyncSession, user_id: int, text: str):
-    """Довабление роли для диалога в базу данных"""
-    await db_requests.add_dialog(session, user_id, "system", text)
+async def add_role_for_dialog(dao: HolderDao, user_id: int, text: str):
+    """Довабление роли для диалога в базу данных."""
+    await dao.dialog.add(Dialog(user_id=user_id, role="system", content=text))
 
 
-async def response_from_gpt(session: AsyncSession, user_id: int, message: str) -> str:
-    """Получение ответа от openai, сохранение его в БД"""
-    messages_to_request = await get_messages_to_request(session, user_id, message)
+async def response_from_gpt(dao: HolderDao, user_id: int, message: str) -> str:
+    """Получение ответа от openai, сохранение его в БД."""
+    messages_to_request = await _get_messages_to_request(dao, user_id, message)
     response = await get_response_from_gpt(messages_to_request)
     if response is None:
         return "Не удалось получить ответ"
-    await db_requests.add_dialog(session, user_id, "assistant", html.quote(response))
+    await dao.dialog.add(
+        Dialog(user_id=user_id, role="assistant", content=html.quote(response))
+    )
     return escape_special_characters_in_place_text(response)
 
 
 async def response_audio(
-    session: AsyncSession, user_id: int, text: str
+    dao: HolderDao, user_id: int, text: str
 ) -> InputFile | None:
     """Получает аудио данные от openai и подготовливает
-    их для отправки пользователя через ТГ"""
-    settings = await db_requests.get_settings(session, user_id)
+    их для отправки пользователя через ТГ.
+    """
+    settings = await dao.settings.find_one(user_id=user_id)
     if settings.tts_voice == TTSVoice.NOT_SELECT:
         return
     response = await text_to_speech(text, settings.tts_voice.value)
     return BufferedInputFile(response, "audio")
 
 
-async def generate_image(session: AsyncSession, user_id: int, text: str) -> str | None:
-    settings = await db_requests.get_settings(session, user_id)
-    image_url = await get_image_from_gpt(
+async def generate_image(dao: HolderDao, user_id: int, text: str) -> str | None:
+    settings = await dao.settings.find_one(user_id=user_id)
+    return await get_image_from_gpt(
         text, settings.image_format.value, settings.image_style.value
     )
-    return image_url
 
 
-async def clear_dialog_context(session: AsyncSession, user_id: int):
-    """Очистка истории диалога и роли"""
-    await db_requests.remove_dialogs_by_user_id(session, user_id)
+async def clear_dialog_context(dao: HolderDao, user_id: int):
+    """Очистка истории диалога и роли."""
+    await dao.dialog.delete(user_id=user_id)
 
 
 # async def show_generation_status(wait_message: Message):
