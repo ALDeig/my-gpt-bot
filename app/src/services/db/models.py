@@ -62,7 +62,7 @@ class Settings(Base):
     __tablename__ = "settings"
 
     id: Mapped[int] = mapped_column(
-        Integer, init_=False, primary_key=True, autoincrement=True
+        Integer, init=False, primary_key=True, autoincrement=True
     )
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
     tts_voice: Mapped[TTSVoice] = mapped_column(
@@ -82,7 +82,7 @@ class AIModels(Base):
     __tablename__ = "ai_models"
 
     id: Mapped[int] = mapped_column(
-        Integer, init_=False, primary_key=True, autoincrement=True
+        Integer, init=False, primary_key=True, autoincrement=True
     )
     source: Mapped[str] = mapped_column(Text)
     model: Mapped[str] = mapped_column(Text)
