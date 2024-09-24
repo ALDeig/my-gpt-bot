@@ -4,3 +4,4 @@ my-test.py
 idea/
 *__pycache__/
 db/*.db
+*.log*

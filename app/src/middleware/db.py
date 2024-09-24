@@ -1,18 +1,24 @@
+from collections.abc import Callable
+
 from aiogram import BaseMiddleware
 from aiogram.dispatcher.flags import get_flag
 from aiogram.types import TelegramObject
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+from app.src.services.db.base import session_factory
+from app.src.services.db.dao.holder import HolderDao
 
 
 class DbSessionMiddleware(BaseMiddleware):
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
+    """Middleware для работы с базой данных."""
+
+    def __init__(self) -> None:
         super().__init__()
-        self.session_factory = session_factory 
 
-    async def __call__(self, handler, event: TelegramObject, data: dict):
-        if not get_flag(data, "db"):
+    async def __call__(
+        self, handler: Callable, event: TelegramObject, data: dict
+    ) -> None:
+        if not get_flag(data, "dao"):
             return await handler(event, data)
-        async with self.session_factory() as session:
-            data["db"] = session
+        async with session_factory() as session:
+            data["dao"] = HolderDao(session)
             return await handler(event, data)
-

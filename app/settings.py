@@ -1,59 +1,58 @@
-import logging
+import logging.config
 
-from pydantic import FieldValidationInfo, PostgresDsn, RedisDsn, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    """Настройки приложения."""
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
-    bot_token: str
-    bot_fsm_storage: str
-    admins: list[int]
-    openai_api_key: str
-    postgres_dsn: PostgresDsn | None = None
-    sqlite_dsn: str | None = None
-    redis_dsn: RedisDsn | None = None
-
-    @field_validator("bot_fsm_storage")
-    @classmethod
-    def validate_fsm_storage(cls, v):
-        """Проверяет правильно ли установлено место хранения состояния"""
-        if v not in ("memory", "redis"):
-            raise ValueError(
-                "Incorrect 'bot_fsm_storage' value. Value mast be 'memory' or 'redis'"
-            )
-        return v
-
-    @field_validator("redis_dsn", mode="before")
-    @classmethod
-    def validate_redis_dsn(cls, v: RedisDsn | None, info: FieldValidationInfo):
-        """Проверяет данные для соединения с Redis, если местом хранения состояни
-        выбран Redis"""
-        if info.data["bot_fsm_storage"] == "redis" and not v:
-            raise ValueError("Redis DSN string is missing!")
-        return v
-
-    @field_validator("sqlite_dsn", mode="before")
-    @classmethod
-    def validate_sqlite_dsn(cls, v: str | None, info: FieldValidationInfo):
-        """Если прописаны данные для соединенния с Postgres, то данные для SQLite, не
-        прописываются"""
-        if info.data["postgres_dsn"] is not None:
-            return
-        return v
+    TELEGRAM_TOKEN: str
+    ADMINS: list[int]
+    OPENAI_API_KEY: str
+    SQLITE_DSN: str
+    LOG_LEVEL: str
 
 
-settings = Settings()  # type: ignore
+settings = Settings()  # type: ignore[reportCallIssue]
+
+LOGGING_CONFIG = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default_formatter": {
+            "format": "[%(asctime)s] [%(levelname)-7s] [%(name)s] > %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        }
+    },
+    "handlers": {
+        "stream_handler": {
+            "class": "logging.StreamHandler",
+            "formatter": "default_formatter",
+        },
+        "file_handler": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "formatter": "default_formatter",
+            "filename": "logs/app.log",
+            "maxBytes": 1024 * 1024 * 10,
+            "backupCount": 3
+        },
+
+    },
+    "loggers": {
+        "root": {
+            "handlers": ["stream_handler", "file_handler"],
+            "level": settings.LOG_LEVEL,
+            "propagate": True,
+        },
+        "httpx": {
+            "handlers": ["stream_handler"],
+            "level": "ERROR",
+            "propagate": True,
+        },
+    },
+}
 
 
-def logging_setup(skip_loggers_list: list[str] | None = None):
-    """Настройка логгера"""
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s %(name)s - %(module)s:%(funcName)s:%(lineno)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    if skip_loggers_list is not None:
-        for logger_name in skip_loggers_list:
-            logging.getLogger(logger_name).propagate = False
+logging.config.dictConfig(LOGGING_CONFIG)

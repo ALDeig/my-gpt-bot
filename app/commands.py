@@ -6,7 +6,7 @@ from aiogram.types import BotCommand, BotCommandScopeChat, BotCommandScopeDefaul
 
 
 async def set_commands(bot: Bot, admins: list[int]):
-    """Установка команд для пользователей и администратора"""
+    """Установка команд для пользователей и администратора."""
     user_commands = [BotCommand(command="start", description="В начало")]
     await bot.set_my_commands(commands=user_commands, scope=BotCommandScopeDefault())
     admin_commands = [
@@ -23,4 +23,4 @@ async def set_commands(bot: Bot, admins: list[int]):
                 scope=BotCommandScopeChat(chat_id=admin_id),
             )
         except TelegramBadRequest:
-            logging.error(f"Can't set commands to admin with ID {admin_id}")
+            logging.warning("Can't set commands to admin with ID %s", admin_id)

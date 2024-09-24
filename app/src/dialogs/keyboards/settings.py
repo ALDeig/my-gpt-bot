@@ -1,7 +1,13 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from app.src.services.db.tables import ImageForamt, ImageStyle, TTSVoice
-
+from app.src.services.openai.enums import (
+    ImageFormat,
+    ImageFormatType,
+    ImageStyle,
+    ImageStyleType,
+    TTSVoice,
+    TTSVoiceType,
+)
 
 kb_settings_menu = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -13,8 +19,8 @@ kb_settings_menu = InlineKeyboardMarkup(
 
 
 def kb_select_setting(
-    params: type[TTSVoice | ImageStyle | ImageForamt],
-    selected_param: TTSVoice | ImageStyle | ImageForamt | None,
+    params: type[TTSVoice | ImageStyle | ImageFormat],
+    selected_param: TTSVoiceType | ImageStyleType | ImageFormatType | None,
 ) -> InlineKeyboardMarkup:
     inline_keyboard = []
     for param in params:
@@ -23,5 +29,9 @@ def kb_select_setting(
             InlineKeyboardButton(text=f"{emoji}{param.value}", callback_data=param)
         ]
         inline_keyboard.append(button)
+    if params is TTSVoice:
+        emoji = "✅ " if selected_param is None else ""
+        inline_keyboard.append(
+            [InlineKeyboardButton(text=f"{emoji}Не выбран", callback_data="not_select")]
+        )
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
-

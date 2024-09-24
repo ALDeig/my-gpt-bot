@@ -6,20 +6,16 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
-
-from app.settings import settings, logging_setup
 from app.commands import set_commands
-from app.src.dialogs.handlers import admin, user, user_settings, openai
+from app.settings import settings
+from app.src.dialogs.handlers import admin, openai, user, user_settings
 from app.src.middleware.db import DbSessionMiddleware
-from app.src.services.db.db_connect import create_session_factory
 
-
-logging_setup()
 logger = logging.getLogger(__name__)
 
 
 def include_routers(dp: Dispatcher):
-    """Регистрация хендлеров"""
+    """Регистрация хендлеров."""
     dp.include_router(user_settings.router)
     dp.include_router(admin.router)
     dp.include_router(openai.router)
@@ -27,7 +23,7 @@ def include_routers(dp: Dispatcher):
 
 
 def include_filters(admins: list[int], dp: Dispatcher):
-    """Регистрация фильтров для хендлеров"""
+    """Регистрация фильтров для хендлеров."""
     dp.message.filter(F.chat.type == "private")
     admin.router.message.filter(F.chat.id.in_(admins))
     admin.router.callback_query.filter(F.chat.id.in_(admins))
@@ -37,32 +33,24 @@ def include_filters(admins: list[int], dp: Dispatcher):
 
 async def main():
     bot = Bot(
-        token=settings.bot_token,
+        token=settings.TELEGRAM_TOKEN,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
-    if settings.bot_fsm_storage == "redis":
-        raise ValueError("redis is not install")
-        # storage = RedisStorage(config.redis_dsn)
-    else:
-        storage = MemoryStorage()
+    storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
 
-    if settings.sqlite_dsn is None:
-        raise ValueError("sqlite_dsn not avalible")
-    session_factory = create_session_factory(settings.sqlite_dsn)
-
     # Регистрация фильтров
-    include_filters(settings.admins, dp)
+    include_filters(settings.ADMINS, dp)
 
     # Регистрация middlewares
-    dp.message.middleware(DbSessionMiddleware(session_factory))
-    dp.callback_query.middleware(DbSessionMiddleware(session_factory))
+    dp.message.middleware(DbSessionMiddleware())
+    dp.callback_query.middleware(DbSessionMiddleware())
 
     # Регистрация хендлеров
     include_routers(dp)
 
     # Установка команд для бота
-    await set_commands(bot, settings.admins)
+    await set_commands(bot, settings.ADMINS)
 
     try:
         await dp.start_polling(bot)
@@ -72,7 +60,7 @@ async def main():
 
 if __name__ == "__main__":
     try:
-        logger.info("Bot starting...")
+        logger.warning("Bot starting...")
         asyncio.run(main())
     except KeyboardInterrupt:
-        logger.error("Bot stopping...")
+        logger.warning("Bot stopping...")
