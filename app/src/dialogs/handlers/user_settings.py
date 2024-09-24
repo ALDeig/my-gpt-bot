@@ -8,7 +8,7 @@ from aiogram.types import CallbackQuery, Message
 from app.src.dialogs.keyboards.settings import kb_select_setting, kb_settings_menu
 from app.src.dialogs.states import SettingsState
 from app.src.services.db.dao.holder import HolderDao
-from app.src.services.db.models import ImageForamt, ImageStyle, TTSVoice
+from app.src.services.openai.enums import ImageFormat, ImageStyle, TTSVoice
 from app.src.services.texts.settings import SELECT_OPTIONS, settings_text
 from app.src.services.user_settings import answer_update_setting, get_open_ai_settings
 
@@ -44,7 +44,7 @@ async def select_setting_type(
         case "image_style":
             kb = kb_select_setting(ImageStyle, settings.image_style)
         case _:
-            kb = kb_select_setting(ImageForamt, settings.image_format)
+            kb = kb_select_setting(ImageFormat, settings.image_format)
     await call.message.edit_text(SELECT_OPTIONS, reply_markup=kb)
     await state.set_state(SettingsState.options)
 

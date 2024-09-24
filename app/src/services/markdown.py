@@ -26,7 +26,6 @@ def _replace_symbols(text: str) -> str:
         "~",
         "`",
         ">",
-        "<",
         "#",
         "+",
         "-",

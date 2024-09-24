@@ -2,9 +2,9 @@ from aiogram import html
 from aiogram.types import BufferedInputFile, InputFile
 
 from app.src.services.db.dao.holder import HolderDao
-from app.src.services.db.models import Dialog, TTSVoice
+from app.src.services.db.models import Dialog
 from app.src.services.markdown import escape_special_characters_in_place_text
-from app.src.services.openai import (
+from app.src.services.openai.openai import (
     get_image_from_gpt,
     get_response_from_gpt,
     text_to_speech,
@@ -45,16 +45,16 @@ async def response_audio(dao: HolderDao, user_id: int, text: str) -> InputFile |
     их для отправки пользователя через ТГ.
     """
     settings = await get_open_ai_settings(dao, user_id)
-    if settings.tts_voice == TTSVoice.NOT_SELECT:
+    if settings.tts_voice is None:
         return
-    response = await text_to_speech(text, settings.tts_voice.value)
+    response = await text_to_speech(text, settings.tts_voice)
     return BufferedInputFile(response, "audio")
 
 
 async def generate_image(dao: HolderDao, user_id: int, text: str) -> str | None:
     settings = await get_open_ai_settings(dao, user_id)
     return await get_image_from_gpt(
-        text, settings.image_format.value, settings.image_style.value
+        text, settings.image_format, settings.image_style
     )
 
 
