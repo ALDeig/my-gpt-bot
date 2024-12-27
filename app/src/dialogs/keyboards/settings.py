@@ -1,5 +1,9 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from collections.abc import Sequence
 
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+from app.src.services.db.models import AIModel
 from app.src.services.openai.enums import (
     ImageFormat,
     ImageFormatType,
@@ -11,9 +15,11 @@ from app.src.services.openai.enums import (
 
 kb_settings_menu = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text="🔊 Голос", callback_data="tts_voice")],
-        [InlineKeyboardButton(text="📐 Формат", callback_data="image_format")],
-        [InlineKeyboardButton(text="🎨 Стиль", callback_data="image_style")],
+        [InlineKeyboardButton(text="🔊 Голос", callback_data="option:tts_voice")],
+        [InlineKeyboardButton(text="📐 Формат", callback_data="option:image_format")],
+        [InlineKeyboardButton(text="🎨 Стиль", callback_data="option:image_style")],
+        [InlineKeyboardButton(text="🎛 GPT - модель", callback_data="option:GPT")],
+        [InlineKeyboardButton(text="🎛 DALL-E - модель", callback_data="option:DALLE")],
     ]
 )
 
@@ -35,3 +41,11 @@ def kb_select_setting(
             [InlineKeyboardButton(text=f"{emoji}Не выбран", callback_data="not_select")]
         )
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+
+
+def kb_select_model(models: Sequence[AIModel]) -> InlineKeyboardMarkup:
+    """Клавиатура для выбора модели."""
+    builder = InlineKeyboardBuilder()
+    for model in models:
+        builder.row(InlineKeyboardButton(text=model.model, callback_data=str(model.id)))
+    return builder.as_markup()
