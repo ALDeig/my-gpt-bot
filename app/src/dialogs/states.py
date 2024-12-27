@@ -12,3 +12,12 @@ class OpenAiState(StatesGroup):
 
     role = State()
     image_prompt = State()
+
+
+class ModelSettingsState(StatesGroup):
+    """Состояния для добавления модели."""
+
+    source = State()
+    model = State()
+    description = State()
+    select_model = State()
