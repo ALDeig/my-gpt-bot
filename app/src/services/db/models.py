@@ -1,8 +1,13 @@
 from sqlalchemy import BigInteger, ForeignKey, Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.src.services.db.base import Base
-from app.src.services.openai.enums import ImageFormatType, ImageStyleType, TTSVoiceType
+from app.src.services.openai.enums import (
+    ImageFormatType,
+    ImageStyleType,
+    ModelSource,
+    TTSVoiceType,
+)
 
 
 class User(Base):
@@ -37,9 +42,22 @@ class Settings(Base):
     tts_voice: Mapped[TTSVoiceType | None] = mapped_column(Text, default=None)
     image_style: Mapped[ImageStyleType] = mapped_column(Text, default="vivid")
     image_format: Mapped[ImageFormatType] = mapped_column(Text, default="1024x1024")
+    gpt_model_id: Mapped[int | None] = mapped_column(
+        ForeignKey("ai_models.id"), default=None
+    )
+    dalle_id: Mapped[int | None] = mapped_column(
+        ForeignKey("ai_models.id"), default=None
+    )
+
+    gpt_model: Mapped["AIModel"] = relationship(
+        init=False, lazy="selectin", foreign_keys=gpt_model_id
+    )
+    dalle_model: Mapped["AIModel"] = relationship(
+        init=False, lazy="selectin", foreign_keys=dalle_id
+    )
 
 
-class AIModels(Base):
+class AIModel(Base):
     """Таблица openai моделей."""
 
     __tablename__ = "ai_models"
@@ -47,6 +65,6 @@ class AIModels(Base):
     id: Mapped[int] = mapped_column(
         Integer, init=False, primary_key=True, autoincrement=True
     )
-    source: Mapped[str] = mapped_column(Text)
+    source: Mapped[ModelSource] = mapped_column(Text)
     model: Mapped[str] = mapped_column(Text)
     description: Mapped[str] = mapped_column(Text)

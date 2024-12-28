@@ -7,10 +7,14 @@ from app.settings import settings
 client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
 
-async def get_response_from_gpt(messages: list[dict[str, str]]) -> str | None:
-    """Делает запрос в openai и возвращает ответ. Модель используется GPT-4."""
+async def get_response_from_gpt(
+    messages: list[dict[str, str]], model: str
+) -> str | None:
+    """Делает запрос в openai и возвращает ответ."""
     completion = await client.chat.completions.create(
-        model="gpt-4o", messages=messages, temperature=0.5  # type: ignore[reportArgumentType]
+        model=model,
+        messages=messages,  # type: ignore[reportArgumentType]
+        temperature=0.5,
     )
     return completion.choices[0].message.content
 
@@ -29,11 +33,12 @@ async def get_image_from_gpt(
     prompt: str,
     size: Literal["1024x1024", "1792x1024", "1024x1792"],
     style: Literal["vivid", "natural"],
+    model: str
 ) -> str | None:
     """Отправляет запрос в openai с описанием изображения и
     получает ссылку на изображение.
     """
     response = await client.images.generate(
-        prompt=prompt, model="dall-e-3", quality="hd", size=size, style=style
+        prompt=prompt, model=model, quality="hd", size=size, style=style
     )
     return response.data[0].url

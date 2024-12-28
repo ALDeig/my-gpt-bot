@@ -3,6 +3,7 @@ from aiogram.types import BufferedInputFile, InputFile
 
 from app.src.services.db.dao.holder import HolderDao
 from app.src.services.db.models import Dialog
+from app.src.services.exceptions import ModelNotSelectedError
 from app.src.services.markdown import escape_special_characters_in_place_text
 from app.src.services.openai.openai import (
     get_image_from_gpt,
@@ -25,13 +26,16 @@ async def _get_messages_to_request(
 
 async def add_role_for_dialog(dao: HolderDao, user_id: int, text: str):
     """Довабление роли для диалога в базу данных."""
-    await dao.dialog.add(Dialog(user_id=user_id, role="system", content=text))
+    await dao.dialog.add(Dialog(user_id=user_id, role="developer", content=text))
 
 
 async def response_from_gpt(dao: HolderDao, user_id: int, message: str) -> str:
     """Получение ответа от openai, сохранение его в БД."""
-    messages_to_request = await _get_messages_to_request(dao, user_id, message)
-    response = await get_response_from_gpt(messages_to_request)
+    settings = await get_open_ai_settings(dao, user_id)
+    if settings.gpt_model is None:
+        raise ModelNotSelectedError
+    messages = await _get_messages_to_request(dao, user_id, message)
+    response = await get_response_from_gpt(messages, settings.gpt_model.model)
     if response is None:
         return "Не удалось получить ответ"
     await dao.dialog.add(
@@ -53,8 +57,10 @@ async def response_audio(dao: HolderDao, user_id: int, text: str) -> InputFile |
 
 async def generate_image(dao: HolderDao, user_id: int, text: str) -> str | None:
     settings = await get_open_ai_settings(dao, user_id)
+    if settings.dalle_model is None:
+        raise ModelNotSelectedError
     return await get_image_from_gpt(
-        text, settings.image_format, settings.image_style
+        text, settings.image_format, settings.image_style, settings.dalle_model.model
     )
 
 

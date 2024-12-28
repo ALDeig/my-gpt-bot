@@ -12,11 +12,13 @@ from app.src.services.dialogs import (
     response_audio,
     response_from_gpt,
 )
+from app.src.services.exceptions import ModelNotSelectedError
 from app.src.services.texts.open_ai import (
     CONTEXT_CLEAR,
     GET_ROLE,
     IMAGE_ERROR,
     IMAGE_PROMPT,
+    MODEL_NOT_SELECTED,
     ROLE_SAVED,
     STATUS_MESSAGE,
 )
@@ -62,8 +64,13 @@ async def get_image_promts(msg: Message, dao: HolderDao, state: FSMContext):
     if msg.text is None:
         return
     status_message = await msg.answer(STATUS_MESSAGE)
-    response = await generate_image(dao, msg.chat.id, msg.text)
-    await status_message.delete()
+    try:
+        response = await generate_image(dao, msg.chat.id, msg.text)
+    except ModelNotSelectedError:
+        await msg.answer(MODEL_NOT_SELECTED)
+        return
+    finally:
+        await status_message.delete()
     if response is None:
         await msg.answer(IMAGE_ERROR)
         return
@@ -78,8 +85,13 @@ async def get_request(msg: Message, dao: HolderDao):
     if msg.text is None:
         return
     status_message = await msg.answer(STATUS_MESSAGE)
-    response = await response_from_gpt(dao, msg.chat.id, msg.text)
-    await status_message.delete()
+    try:
+        response = await response_from_gpt(dao, msg.chat.id, msg.text)
+    except ModelNotSelectedError:
+        await msg.answer(MODEL_NOT_SELECTED)
+        return
+    finally:
+        await status_message.delete()
     await msg.answer(response, parse_mode="MarkdownV2")
     audio = await response_audio(dao, msg.chat.id, response)
     if audio is not None:

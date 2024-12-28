@@ -28,6 +28,13 @@ class ImageStyle(enum.StrEnum):
     NATURAL = "natural"
 
 
+class ModelSource(enum.StrEnum):
+    """Источники моделей."""
+
+    GPT = "GPT"
+    DALLE = "DALLE"
+
+
 type TTSVoiceType = Literal[
     "alloy",
     "echo",

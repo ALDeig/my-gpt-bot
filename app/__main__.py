@@ -8,7 +8,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from app.commands import set_commands
 from app.settings import settings
-from app.src.dialogs.handlers import admin, openai, user, user_settings
+from app.src.dialogs.handlers import admin, model_settings, openai, user, user_settings
 from app.src.middleware.db import DbSessionMiddleware
 
 logger = logging.getLogger(__name__)
@@ -16,10 +16,13 @@ logger = logging.getLogger(__name__)
 
 def include_routers(dp: Dispatcher):
     """Регистрация хендлеров."""
-    dp.include_router(user_settings.router)
-    dp.include_router(admin.router)
-    dp.include_router(openai.router)
-    dp.include_router(user.router)
+    dp.include_routers(
+        user_settings.router,
+        admin.router,
+        model_settings.router,
+        openai.router,
+        user.router,
+    )
 
 
 def include_filters(admins: list[int], dp: Dispatcher):
@@ -27,6 +30,8 @@ def include_filters(admins: list[int], dp: Dispatcher):
     dp.message.filter(F.chat.type == "private")
     admin.router.message.filter(F.chat.id.in_(admins))
     admin.router.callback_query.filter(F.chat.id.in_(admins))
+    model_settings.router.message.filter(F.chat.id.in_(admins))
+    model_settings.router.callback_query.filter(F.chat.id.in_(admins))
     openai.router.message.filter(F.chat.id.in_(admins))
     openai.router.callback_query.filter(F.chat.id.in_(admins))
 
