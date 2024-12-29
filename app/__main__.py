@@ -1,71 +1,70 @@
-import asyncio
 import logging
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+from pathlib import Path
 
-from aiogram import Bot, Dispatcher, F
-from aiogram.client.default import DefaultBotProperties
-from aiogram.enums.parse_mode import ParseMode
-from aiogram.fsm.storage.memory import MemoryStorage
+import uvicorn
+from aiogram.types import Update
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
-from app.commands import set_commands
+from app.bot import BotManager
 from app.settings import settings
-from app.src.dialogs.handlers import admin, model_settings, openai, user, user_settings
-from app.src.middleware.db import DbSessionMiddleware
+from app.webapp.manager import ConnectionManager
 
 logger = logging.getLogger(__name__)
 
+bot = BotManager()
+manager = ConnectionManager()
 
-def include_routers(dp: Dispatcher):
-    """Регистрация хендлеров."""
-    dp.include_routers(
-        user_settings.router,
-        admin.router,
-        model_settings.router,
-        openai.router,
-        user.router,
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI) -> AsyncGenerator:  # noqa: ARG001
+    await bot.start_bot()
+    await bot.bot.set_webhook(
+        url=settings.webhook_url,
+        allowed_updates=bot.dp.resolve_used_update_types(),
+        drop_pending_updates=True,
+    )
+    yield
+    await bot.bot.delete_webhook()
+
+
+app = FastAPI(lifespan=_lifespan)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request) -> HTMLResponse:
+    logger.info(request)
+    return HTMLResponse(
+        content=Path("templates/index.html").read_text(encoding="utf-8"),
+        status_code=200,
     )
 
 
-def include_filters(admins: list[int], dp: Dispatcher):
-    """Регистрация фильтров для хендлеров."""
-    dp.message.filter(F.chat.type == "private")
-    admin.router.message.filter(F.chat.id.in_(admins))
-    admin.router.callback_query.filter(F.chat.id.in_(admins))
-    model_settings.router.message.filter(F.chat.id.in_(admins))
-    model_settings.router.callback_query.filter(F.chat.id.in_(admins))
-    openai.router.message.filter(F.chat.id.in_(admins))
-    openai.router.callback_query.filter(F.chat.id.in_(admins))
-
-
-async def main():
-    bot = Bot(
-        token=settings.TELEGRAM_TOKEN,
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+@app.post("/webhook")
+async def webhook(request: Request) -> None:
+    logger.info("Received webhook request")
+    await bot.dp.feed_update(
+        bot.bot,
+        Update.model_validate(await request.json(), context={"bot": bot.bot}),
     )
-    storage = MemoryStorage()
-    dp = Dispatcher(storage=storage)
+    logger.info("Update processed")
 
-    # Регистрация фильтров
-    include_filters(settings.ADMINS, dp)
 
-    # Регистрация middlewares
-    dp.message.middleware(DbSessionMiddleware())
-    dp.callback_query.middleware(DbSessionMiddleware())
-
-    # Регистрация хендлеров
-    include_routers(dp)
-
-    # Установка команд для бота
-    await set_commands(bot, settings.ADMINS)
-
+@app.websocket("/communicate")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
     try:
-        await dp.start_polling(bot)
-    finally:
-        await bot.session.close()
+        while True:
+            data = await websocket.receive_text()
+            logger.warning(data)
+            await manager.send_personal_message(f"Received:{data}", websocket)
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
 
 
 if __name__ == "__main__":
-    try:
-        logger.warning("Bot starting...")
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        logger.warning("Bot stopping...")
+    uvicorn.run("app.__main__:app", host="127.0.0.1", port=5050, reload=True)

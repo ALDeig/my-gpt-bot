@@ -13,6 +13,11 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str
     SQLITE_DSN: str
     LOG_LEVEL: str
+    BASE_URL: str
+
+    @property
+    def webhook_url(self) -> str:
+        return f"{self.BASE_URL}/webhook"
 
 
 settings = Settings()  # type: ignore[reportCallIssue]
