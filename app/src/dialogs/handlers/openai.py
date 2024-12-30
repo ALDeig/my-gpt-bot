@@ -12,7 +12,7 @@ from app.src.services.dialogs import (
     response_audio,
     response_from_gpt,
 )
-from app.src.services.exceptions import ModelNotSelectedError
+from app.src.services.exceptions import ChatIsExistError, ModelNotSelectedError
 from app.src.services.texts.open_ai import (
     CONTEXT_CLEAR,
     GET_ROLE,
@@ -20,6 +20,7 @@ from app.src.services.texts.open_ai import (
     IMAGE_PROMPT,
     MODEL_NOT_SELECTED,
     ROLE_SAVED,
+    ROLE_SAVED_ERROR,
     STATUS_MESSAGE,
 )
 
@@ -40,8 +41,12 @@ async def get_role(msg: Message, dao: HolderDao, state: FSMContext):
     """Сообщение с ролью. Сохраняет роль."""
     if msg.text is None:
         return
-    await add_role_for_dialog(dao, msg.chat.id, msg.text)
-    await msg.answer(ROLE_SAVED)
+    try:
+        await add_role_for_dialog(dao, msg.chat.id, msg.text)
+    except ChatIsExistError:
+        await msg.answer(ROLE_SAVED_ERROR)
+    else:
+        await msg.answer(ROLE_SAVED)
     await state.clear()
 
 

@@ -1,9 +1,10 @@
-from aiogram import html
+from typing import Literal
+
 from aiogram.types import BufferedInputFile, InputFile
 
 from app.src.services.db.dao.holder import HolderDao
-from app.src.services.db.models import Dialog
-from app.src.services.exceptions import ModelNotSelectedError
+from app.src.services.db.models import AIChatMessage, Chat
+from app.src.services.exceptions import ChatIsExistError, ModelNotSelectedError
 from app.src.services.markdown import escape_special_characters_in_place_text
 from app.src.services.openai.openai import (
     get_image_from_gpt,
@@ -14,32 +15,54 @@ from app.src.services.user_settings import get_open_ai_settings
 
 
 async def _get_messages_to_request(
-    dao: HolderDao, user_id: int, text: str
+    dao: HolderDao, chat: Chat, text: str
 ) -> list[dict[str, str]]:
     """Получение сообщений для в openai из базы и соединение их с текущим запросом."""
-    dialogs = await dao.dialog.find_all(user_id=user_id)
-    messages = [{"role": dialog.role, "content": dialog.content} for dialog in dialogs]
-    messages.append({"role": "user", "content": text})
-    await dao.dialog.add(Dialog(user_id=user_id, role="user", content=text))
-    return messages
+    request_format_messages = [
+        {"role": message.role, "content": message.content} for message in chat.messages
+    ]
+    request_format_messages.append({"role": "user", "content": text})
+    await dao.ai_chat_message.add(
+        AIChatMessage(chat_id=chat.id, role="user", content=text)
+    )
+    return request_format_messages
 
 
 async def add_role_for_dialog(dao: HolderDao, user_id: int, text: str):
     """Довабление роли для диалога в базу данных."""
-    await dao.dialog.add(Dialog(user_id=user_id, role="developer", content=text))
+    chat = await dao.chat.find_one_or_none(user_id=user_id, type="bot")
+    if chat:
+        raise ChatIsExistError
+    chat = await create_chat(dao, user_id, "bot")
+    await dao.ai_chat_message.add(
+        AIChatMessage(chat_id=chat.id, role="developer", content=text)
+    )
+
+
+async def create_chat(dao: HolderDao, user_id: int, chat_type: Literal["bot", "app"]):
+    settings = await get_open_ai_settings(dao, user_id)
+    if not settings.gpt_model_id:
+        raise ModelNotSelectedError
+    return await dao.chat.add(
+        Chat(user_id=user_id, model_id=settings.gpt_model_id, type=chat_type)
+    )
 
 
 async def response_from_gpt(dao: HolderDao, user_id: int, message: str) -> str:
     """Получение ответа от openai, сохранение его в БД."""
-    settings = await get_open_ai_settings(dao, user_id)
-    if settings.gpt_model is None:
+    chat = await dao.chat.find_one_or_none(user_id=user_id, type="bot")
+    if not chat:
+        chat = await create_chat(dao, user_id, "bot")
+        await chat.awaitable_attrs.messages
+    messages = await _get_messages_to_request(dao, chat, message)
+    ai_model = await dao.ai_model.find_one_or_none(id=chat.model_id)
+    if not ai_model:
         raise ModelNotSelectedError
-    messages = await _get_messages_to_request(dao, user_id, message)
-    response = await get_response_from_gpt(messages, settings.gpt_model.model)
+    response = await get_response_from_gpt(messages, ai_model.model)
     if response is None:
         return "Не удалось получить ответ"
-    await dao.dialog.add(
-        Dialog(user_id=user_id, role="assistant", content=html.quote(response))
+    await dao.ai_chat_message.add(
+        AIChatMessage(chat_id=chat.id, role="assistant", content=response)
     )
     return escape_special_characters_in_place_text(response)
 
@@ -66,7 +89,10 @@ async def generate_image(dao: HolderDao, user_id: int, text: str) -> str | None:
 
 async def clear_dialog_context(dao: HolderDao, user_id: int):
     """Очистка истории диалога и роли."""
-    await dao.dialog.delete(user_id=user_id)
+    chat = await dao.chat.find_one_or_none(user_id=user_id, type="bot")
+    if chat:
+        await dao.ai_chat_message.delete(chat_id=chat.id)
+        await dao.chat.delete(id=chat.id)
 
 
 # async def show_generation_status(wait_message: Message):
