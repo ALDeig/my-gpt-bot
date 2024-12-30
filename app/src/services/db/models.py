@@ -1,3 +1,5 @@
+from typing import Literal
+
 from sqlalchemy import BigInteger, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -20,17 +22,67 @@ class User(Base):
     username: Mapped[str] = mapped_column(String, nullable=True)
 
 
-class Dialog(Base):
-    """Таблица диалогов."""
+class AIModel(Base):
+    """Таблица openai моделей."""
 
-    __tablename__ = "dialogs"
+    __tablename__ = "ai_models"
+
+    id: Mapped[int] = mapped_column(
+        Integer, init=False, primary_key=True, autoincrement=True
+    )
+    source: Mapped[ModelSource] = mapped_column(Text)
+    model: Mapped[str] = mapped_column(Text)
+    description: Mapped[str] = mapped_column(Text)
+
+
+class Chat(Base):
+    """Таблица чатов."""
+
+    __tablename__ = "chats"
 
     id: Mapped[int] = mapped_column(
         Integer, init=False, primary_key=True, autoincrement=True
     )
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
-    role: Mapped[str]
-    content: Mapped[str]
+    model_id: Mapped[int] = mapped_column(ForeignKey(AIModel.id, ondelete="CASCADE"))
+    type: Mapped[Literal["bot", "app"]] = mapped_column(String(3))
+
+    messages: Mapped[list["AIChatMessage"]] = relationship(
+        back_populates="chat", lazy="selectin", init=False
+    )
+
+
+class AIChatMessage(Base):
+    """Таблица сообщений c ИИ."""
+
+    __tablename__ = "ai_chat_messages"
+
+    id: Mapped[int] = mapped_column(
+        Integer, init=False, primary_key=True, autoincrement=True
+    )
+    chat_id: Mapped[int] = mapped_column(ForeignKey(Chat.id, ondelete="CASCADE"))
+    role: Mapped[Literal["user", "developer", "assistant"]] = mapped_column(String(9))
+    content: Mapped[str] = mapped_column(Text)
+
+    chat: Mapped["Chat"] = relationship(
+        back_populates="messages", lazy="selectin", init=False
+    )
+
+
+# class Dialog(Base):
+#     """Таблица диалогов."""
+#
+#     __tablename__ = "dialogs"
+#
+#     id: Mapped[int] = mapped_column(
+#         Integer, init=False, primary_key=True, autoincrement=True
+#     )
+#     user_id: Mapped[int] = mapped_column(ForeignKey(User.id, ondelete="CASCADE"))
+#     model_id: Mapped[int] = mapped_column(ForeignKey(AIModel.id, ondelete="CASCADE"))
+#     type: Mapped[Literal["bot", "app"]] = mapped_column(String(3))
+#     role: Mapped[Literal["user", "developer"]] = mapped_column(String(9))
+#     content: Mapped[str] = mapped_column(Text)
+#
 
 
 class Settings(Base):
@@ -55,16 +107,3 @@ class Settings(Base):
     dalle_model: Mapped["AIModel"] = relationship(
         init=False, lazy="selectin", foreign_keys=dalle_id
     )
-
-
-class AIModel(Base):
-    """Таблица openai моделей."""
-
-    __tablename__ = "ai_models"
-
-    id: Mapped[int] = mapped_column(
-        Integer, init=False, primary_key=True, autoincrement=True
-    )
-    source: Mapped[ModelSource] = mapped_column(Text)
-    model: Mapped[str] = mapped_column(Text)
-    description: Mapped[str] = mapped_column(Text)

@@ -4,7 +4,13 @@ from typing import TypeVar
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.src.services.db.dao.base_dao import BaseDao
-from app.src.services.db.dao.dao import AIModelDao, DialogDao, SettingDao, UserDao
+from app.src.services.db.dao.dao import (
+    AiChatMessageDao,
+    AIModelDao,
+    ChatDao,
+    SettingDao,
+    UserDao,
+)
 from app.src.services.db.dao.exceptions import DaoNotFoundError
 
 logger = logging.getLogger(__name__)
@@ -15,12 +21,20 @@ T = TypeVar("T", bound=BaseDao)
 class HolderDao:
     """Содержит или инициализирует все экземпляры DAO."""
 
-    __slots__ = ("_ai_model", "_dialog", "_session", "_settings", "_user")
+    __slots__ = (
+        "_ai_chat_message",
+        "_ai_model",
+        "_chat",
+        "_session",
+        "_settings",
+        "_user",
+    )
 
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
+        self._ai_chat_message: AiChatMessageDao | None = None
         self._ai_model: AIModelDao | None = None
-        self._dialog: DialogDao | None = None
+        self._chat: ChatDao | None = None
         self._settings: SettingDao | None = None
         self._user: UserDao | None = None
 
@@ -29,8 +43,12 @@ class HolderDao:
         return self._get_dao("ai_model", AIModelDao)
 
     @property
-    def dialog(self) -> DialogDao:
-        return self._get_dao("dialog", DialogDao)
+    def chat(self) -> ChatDao:
+        return self._get_dao("chat", ChatDao)
+
+    @property
+    def ai_chat_message(self) -> AiChatMessageDao:
+        return self._get_dao("ai_chat_message", AiChatMessageDao)
 
     @property
     def settings(self) -> SettingDao:
