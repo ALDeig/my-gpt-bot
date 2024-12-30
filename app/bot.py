@@ -50,11 +50,11 @@ class BotManager:
         """Регистрация фильтров для хендлеров."""
         self.dp.message.filter(F.chat.type == "private")
         admin.router.message.filter(F.chat.id.in_(admins))
-        admin.router.callback_query.filter(F.chat.id.in_(admins))
+        admin.router.callback_query.filter(F.from_user.id.in_(admins))
         model_settings.router.message.filter(F.chat.id.in_(admins))
-        model_settings.router.callback_query.filter(F.chat.id.in_(admins))
+        model_settings.router.callback_query.filter(F.from_user.id.in_(admins))
         openai.router.message.filter(F.chat.id.in_(admins))
-        openai.router.callback_query.filter(F.chat.id.in_(admins))
+        openai.router.callback_query.filter(F.from_user.id.in_(admins))
 
 
 # async def start_bot() -> tuple[Bot, Dispatcher]:
