@@ -48,7 +48,7 @@ app = FastAPI(lifespan=_lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-@app.get("/app", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse)
 async def index(request: Request) -> HTMLResponse:
     logger.info(await request.body())
     return HTMLResponse(
@@ -57,14 +57,14 @@ async def index(request: Request) -> HTMLResponse:
     )
 
 
-@app.get("/app/chats")
+@app.get("/chats")
 async def chats(request: Request, user_id: int) -> JSONResponse:  # noqa: ARG001
     return JSONResponse(
         [chat.model_dump(by_alias=True) for chat in await get_app_chats(user_id)]
     )
 
 
-@app.get("/app/chats/{chat_id}")
+@app.get("/chats/{chat_id}")
 async def chat_request(request: Request, chat_id: int) -> JSONResponse:  # noqa: ARG001
     chat = await get_chat(chat_id)
     for message in chat.messages:
@@ -72,18 +72,18 @@ async def chat_request(request: Request, chat_id: int) -> JSONResponse:  # noqa:
     return JSONResponse(chat.model_dump(by_alias=True))
 
 
-@app.delete("/app/chats/{chat_id}")
+@app.delete("/chats/{chat_id}")
 async def delete_chat(request: Request, chat_id: int) -> JSONResponse:  # noqa: ARG001
     await remove_chat(chat_id)
     return JSONResponse({"success": True})
 
 
-@app.get("/app/ai_models")
+@app.get("/ai_models")
 async def ai_models(request: Request) -> JSONResponse:  # noqa: ARG001
     return JSONResponse([ai_model.model_dump() for ai_model in await get_ai_models()])
 
 
-@app.post("/app/new_chat")
+@app.post("/new_chat")
 async def new_chat(request: Request, new_chat: SNewChat) -> JSONResponse:
     logger.info(await request.body())
     chat = await create_new_chat(new_chat)
@@ -100,7 +100,7 @@ async def webhook(request: Request) -> None:
     logger.info("Update processed")
 
 
-@app.websocket("/app/communicate/{chat_id}")
+@app.websocket("/communicate/{chat_id}")
 async def websocket_endpoint(websocket: WebSocket, chat_id: int):
     logger.info(chat_id)
     await manager.connect(websocket)
