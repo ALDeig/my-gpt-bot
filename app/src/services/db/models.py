@@ -47,6 +47,7 @@ class Chat(Base):
     model_id: Mapped[int] = mapped_column(ForeignKey(AIModel.id, ondelete="CASCADE"))
     type: Mapped[Literal["bot", "app"]] = mapped_column(String(3))
 
+    model: Mapped[AIModel] = relationship(lazy="selectin", init=False)
     messages: Mapped[list["AIChatMessage"]] = relationship(
         back_populates="chat", lazy="selectin", init=False
     )
