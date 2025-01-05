@@ -17,4 +17,6 @@ async def cmd_start(msg: Message, dao: HolderDao, state: FSMContext):
         return
     await state.clear()
     await save_user(dao, msg.chat.id, msg.from_user.full_name, msg.from_user.username)
-    await msg.answer("Пришли свой запрос...", reply_markup=web_app_keyboard())
+    await msg.answer(
+        "Пришли свой запрос...", reply_markup=web_app_keyboard(msg.chat.id)
+    )

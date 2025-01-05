@@ -16,4 +16,6 @@ async def cmd_start(msg: Message, dao: HolderDao, state: FSMContext):
     await state.clear()
     await save_user(dao, msg.chat.id, msg.chat.full_name, msg.chat.username)
     if msg.chat.id in settings.ADMINS:
-        await msg.answer("Добро пожаловать в MyGPT!", reply_markup=web_app_keyboard())
+        await msg.answer(
+            "Добро пожаловать в MyGPT!", reply_markup=web_app_keyboard(msg.chat.id)
+        )
