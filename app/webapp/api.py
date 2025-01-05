@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field, field_validator
 from app.src.services.db.base import session_factory
 from app.src.services.db.dao.holder import HolderDao
 from app.src.services.db.models import AIChatMessage, AIModel, Chat
+from app.src.services.openai.enums import ModelSource
 from app.src.services.openai.openai import get_response_from_gpt
 
 
@@ -57,7 +58,7 @@ async def get_app_chats(user_id: int) -> list[SChat]:
 
 async def get_ai_models() -> list[SAIModel]:
     async with session_factory() as session:
-        models = await HolderDao(session).ai_model.find_all()
+        models = await HolderDao(session).ai_model.find_all(source=ModelSource.GPT)
     return [SAIModel.model_validate(model, from_attributes=True) for model in models]
 
 
