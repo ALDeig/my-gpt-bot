@@ -24,11 +24,20 @@ function setSocket(chatId, socket) {
   sockets[chatId] = socket;
 }
 
+function getSocket(chatId) {
+  let ws = sockets[chatId];
+  if (!ws || (ws && ws.readyState !== WebSocket.OPEN)) {
+    ws = new WebSocket(`wss://${window.location.host}/communicate/${chatId}`);
+    setSocket(chatId, ws);
+  }
+  return ws;
+}
+
 function sendMessage() {
   const textarea = document.querySelector("textarea");
   const chatId = sessionStorage.getItem("currentChatId");
   const message = textarea.value.trim();
-  const ws = sockets[chatId];
+  const ws = getSocket(chatId);
   if (message) {
     displayMessage(message, "user-message");
     ws.send(
