@@ -17,7 +17,6 @@ body {
 pre {
   padding: 15px;
   border-radius: 5px;
-  font-family: Consolas, "Courier New", monospace;
   /*background-color: #40414f;*/
   /*color: white;*/
   overflow-x: auto;
@@ -25,21 +24,22 @@ pre {
   word-wrap: break-word;
 }
 
-code {
+
+p > code {
   white-space: pre-wrap;
   word-wrap: break-word;
-  color: #e6db74 ;
+  color: #C678DD ;
 }
+
 
 code span {
-  font-family: Consolas, "Courier New";
-  /*font-size: 12px;*/
+  font-size: 12px;
 }
 
-.codehilite {
+.highlight {
   margin: 15px;
   border-radius: 5px;
-  /*font-family: Consolas, "Courier New", monospace;*/
+  position: relative;
 }
 
 .sidebar {
@@ -347,11 +347,11 @@ textarea {
     font-size: 12px;
   }
 
-  code span {
-    font-size: 12px;
-    /*word-spacing: -2px;*/
-    /*letter-spacing: -1px;*/
-  }
+  /*code span {*/
+  /*  font-size: 12px;*/
+  /*  word-spacing: -1px;*/
+  /*  /*letter-spacing: -1px;*/*/
+  /*}*/
 }
 
 @media (hover: none) {
@@ -361,17 +361,14 @@ textarea {
 
 }
 
-code {
-  font-family: Consolas, "Courier New", monospace;
-}
 
-.codehilite {
-  position: relative;
+/*.highlight {*/
+/*  position: relative;*/
   /*padding: 10px;*/
   /*border: 1px solid #ddd;*/
   /*border-radius: 5px;*/
   /*background: #f9f9f9;*/
-}
+/*}*/
 
 .copy-btn {
   position: absolute;

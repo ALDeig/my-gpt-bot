@@ -23,7 +23,7 @@ from app.webapp.api import (
     remove_chat,
 )
 from app.webapp.manager import ConnectionManager
-from app.webapp.md_format import format_code
+from app.webapp.md_format import format_code_use_mistune
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ async def chats(request: Request, user_id: int) -> JSONResponse:  # noqa: ARG001
 async def chat_request(request: Request, chat_id: int) -> JSONResponse:  # noqa: ARG001
     chat = await get_chat(chat_id)
     for message in chat.messages:
-        message.content = format_code(message.content)
+        message.content = format_code_use_mistune(message.content)
     return JSONResponse(chat.model_dump(by_alias=True))
 
 
@@ -110,7 +110,7 @@ async def websocket_endpoint(websocket: WebSocket, chat_id: int):
             logger.warning(data)
             resp = await gpt_request(chat_id, json.loads(data)["text"])
             await manager.send_personal_message(
-                json.dumps({"text": format_code(resp)}), websocket
+                json.dumps({"text": format_code_use_mistune(resp)}), websocket
             )
     except WebSocketDisconnect:
         manager.disconnect(websocket)
