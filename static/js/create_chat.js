@@ -1,5 +1,5 @@
 import { addChatToList, setCurrentChat } from "./chats_menu";
-import { openSocket } from "./sockets";
+import { getOrCreateSocket } from "./sockets";
 
 async function menuCreateChat(modalOverlay) {
   // функция сбора данных для создания нового чата
@@ -54,7 +54,7 @@ async function createChat(userId) {
   const chatContainer = document.querySelector(".chat-container");
   const chatList = document.querySelector(".chat-list");
   setCurrentChat(chat.id);
-  openSocket(chat.id);
+  getOrCreateSocket(chat.id);
   addChatToList(chatList, chat);
   currentChat.textContent = `${chat.id}. ${chat.model}`;
   chatContainer.innerHTML = "";

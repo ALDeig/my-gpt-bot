@@ -2,42 +2,37 @@ import { displayMessage } from "./dialog";
 
 const sockets = {};
 
-function openSocket(chatId) {
-  if (chatId in sockets) {
-    return;
-  }
-  const ws = new WebSocket(`wss://${window.location.host}/communicate/${chatId}`);
-  setSocket(chatId, ws);
-  ws.onopen = function () {
-    console.log("Connected to WebSocket server");
-  };
-  ws.onmessage = getMessage;
-  ws.onclose = function () {
-    console.log("Disconnected from WebSocket server");
-  };
-  ws.onerror = function (error) {
-    console.error("WebSocket error:", error);
-  };
-}
-
 function setSocket(chatId, socket) {
   sockets[chatId] = socket;
 }
 
-function getSocket(chatId) {
-  let ws = sockets[chatId];
-  if (!ws || (ws && ws.readyState !== WebSocket.OPEN)) {
-    ws = new WebSocket(`wss://${window.location.host}/communicate/${chatId}`);
-    setSocket(chatId, ws);
+function getOrCreateSocket(chatId) {
+  const ws = sockets[chatId];
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    return ws;
   }
-  return ws;
+  const newSocket = new WebSocket(
+    `wss://${window.location.host}/communicate/${chatId}`,
+  );
+  setSocket(chatId, newSocket);
+  newSocket.onopen = function () {
+    console.log("Connected to WebSocket server");
+  };
+  newSocket.onmessage = getMessage;
+  newSocket.onclose = function () {
+    console.log("Disconnected from WebSocket server");
+  };
+  newSocket.onerror = function (error) {
+    console.error("WebSocket error:", error);
+  };
+  return newSocket;
 }
 
 function sendMessage() {
   const textarea = document.querySelector("textarea");
   const chatId = sessionStorage.getItem("currentChatId");
   const message = textarea.value.trim();
-  const ws = getSocket(chatId);
+  const ws = getOrCreateSocket(chatId);
   if (message) {
     displayMessage(message, "user-message");
     ws.send(
@@ -56,4 +51,4 @@ function getMessage(event) {
   displayMessage(message.text, "bot-message");
 }
 
-export { openSocket, sendMessage };
+export { getOrCreateSocket, sendMessage };

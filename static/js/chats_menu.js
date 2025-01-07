@@ -1,5 +1,5 @@
 import { displayMessage } from "./dialog";
-import { openSocket } from "./sockets";
+import { getOrCreateSocket } from "./sockets";
 
 async function fillChatList(userId) {
   const chats = await getChats(userId);
@@ -46,7 +46,7 @@ function addChatToList(chatList, chat) {
 async function selectChat(chatId) {
   const resp = await fetch(`/chats/${chatId}`);
   const chat = await resp.json();
-  openSocket(chat.id);
+  getOrCreateSocket(chat.id);
   const chatContainer = document.querySelector(".chat-container");
   const currentChat = document.querySelector("#currentModel");
   currentChat.textContent = `${chat.id}. ${chat.model}`;
