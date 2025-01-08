@@ -1,5 +1,5 @@
 import { displayMessage } from "./dialog";
-import { getOrCreateSocket } from "./sockets";
+import { getSocket } from "./sockets";
 
 async function fillChatList(userId) {
   const chats = await getChats(userId);
@@ -44,9 +44,10 @@ function addChatToList(chatList, chat) {
 }
 
 async function selectChat(chatId) {
+  const sidebar = document.querySelector(".sidebar");
   const resp = await fetch(`/chats/${chatId}`);
   const chat = await resp.json();
-  getOrCreateSocket(chat.id);
+  getSocket(chat.id);
   const chatContainer = document.querySelector(".chat-container");
   const currentChat = document.querySelector("#currentModel");
   currentChat.textContent = `${chat.id}. ${chat.model}`;
@@ -58,6 +59,7 @@ async function selectChat(chatId) {
     ),
   );
   setCurrentChat(chat.id);
+  sidebar.classList.toggle("active");
 }
 
 async function deleteChat(chatId) {

@@ -5,13 +5,12 @@ import { sendMessage } from "./sockets";
 document.addEventListener("DOMContentLoaded", async function () {
   const tg = window.Telegram.WebApp;
   let userId;
-  //if (tg.initDataUnsafe.user) {
-  //  userId = tg.initDataUnsafe.user.id;
-  //} else {
-  //  const url = new URL(window.location.href);
-  //  userId = url.searchParams.get("user_id");
-  //}
-  userId = "381428187"
+  if (tg.initDataUnsafe.user) {
+    userId = tg.initDataUnsafe.user.id;
+  } else {
+    const url = new URL(window.location.href);
+    userId = url.searchParams.get("user_id");
+  }
   tg.expand();
   await fillChatList(userId);
   addEventListeners(userId);
@@ -64,7 +63,7 @@ function addEventListeners(userId) {
   textarea.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      (0, _sockets__WEBPACK_IMPORTED_MODULE_2__.sendMessage)();
+      sendMessage();
     }
   });
 
