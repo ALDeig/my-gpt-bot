@@ -42,7 +42,7 @@ function sendMessage() {
   const textarea = document.querySelector("textarea");
   const chatId = sessionStorage.getItem("currentChatId");
   const message = textarea.value.trim();
-  const ws = getOrCreateSocket(chatId);
+  const ws = getSocket(chatId);
   if (message) {
     displayMessage(message, "user-message");
     ws.send(
